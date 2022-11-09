@@ -36,6 +36,6 @@ struct pump_t
     TimerHandle_t timer;
 } typedef pump_t;
 
-void timer_callback(TimerHandle_t timer);
-void pump_timers_config();
+static void timer_callback(TimerHandle_t timer);
+static void pump_timers_config();
 void task_pump_controller(void *arg);
