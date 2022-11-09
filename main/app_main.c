@@ -14,9 +14,9 @@
 // Components
 #include "water_sensor_driver.h"
 #include "pump_driver.h"
-#include "system_init.h"
+#include "refilling_system_init.h"
 #include "task_pump_controller.h"
-#include "task_mqtt_listener.h"
+#include "task_mqtt_client.h"
 
 // App config file
 #include "app_config.h"
@@ -32,11 +32,11 @@ void app_main()
     // Global variables initialization
     pump_controller_msg_queue = xQueueCreate(10, sizeof(pump_controller_msg_t));
 
-    system_init();
+    refilling_system_init();
 
     // Create tasks
     xTaskCreate(task_pump_controller, "task_pump_controller", 2048, NULL, 10, NULL);
-    xTaskCreate(task_mqtt_listener, "task_mqtt_listen", 2048, NULL, 10, NULL);
+    task_mqtt_client(); // Creates a task internally
 
     ESP_LOGI(TAG, "System initialized!");
 }

@@ -8,7 +8,7 @@
 #include "esp_log.h"
 
 #include "pump_driver.h"
-#include "system_init.h"
+#include "refilling_system_init.h"
 
 #include "app_config.h"
 
@@ -36,6 +36,4 @@ struct pump_t
     TimerHandle_t timer;
 } typedef pump_t;
 
-static void timer_callback(TimerHandle_t timer);
-static void pump_timers_config();
 void task_pump_controller(void *arg);

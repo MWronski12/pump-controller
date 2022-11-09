@@ -11,6 +11,4 @@
 
 extern volatile uint8_t REFILLING_FLAG;
 
-void top_water_sensor_isr_handler();
-void bottom_water_sensor_isr_handler();
-void system_init();
+void refilling_system_init();
