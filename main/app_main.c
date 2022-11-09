@@ -9,7 +9,7 @@
 
 #include "water_sensor_driver.h"
 #include "pump_driver.h"
-#include "include/config.h"
+#include "app_config.h"
 
 #include "esp_log.h"
 

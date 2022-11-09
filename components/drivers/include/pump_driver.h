@@ -5,7 +5,7 @@
 
 #include "driver/gpio.h"
 
-#include "config.h"
+#include "app_config.h"
 
 #define START_WATER 1
 #define STOP_WATER 0
