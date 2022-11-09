@@ -8,8 +8,8 @@ void water_sensor_config(
         .intr_type = GPIO_INTR_DISABLE,
         .mode = GPIO_MODE_INPUT,
         .pin_bit_mask = (1U << signal_pin),
-        .pull_down_en = 0,
-        .pull_up_en = 1};
+        .pull_down_en = 1,
+        .pull_up_en = 0};
 
     gpio_config(&water_sensor_signal_pin_config);
     // gpio_install_isr_service(0);

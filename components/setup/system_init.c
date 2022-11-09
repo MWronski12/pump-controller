@@ -2,19 +2,20 @@
 
 void top_water_sensor_isr_handler()
 {
-
+    static pump_controller_msg_t msg = {.type = START_TASKS, .duration_s = 0, .pump_id = 0};
     if (REFILLING_FLAG == 1)
     {
-
-        pump_off(PUMP_MAIN_PIN);
         REFILLING_FLAG = 0;
+        xQueueSendFromISR(pump_controller_msg_queue, &msg, NULL);
+        pump_off(PUMP_MAIN_PIN);
     }
 }
 
 void bottom_water_sensor_isr_handler()
 {
-
     REFILLING_FLAG = 1;
+    static pump_controller_msg_t msg = {.type = PAUSE_TASKS, .duration_s = 0, .pump_id = 0};
+    xQueueSendFromISR(pump_controller_msg_queue, &msg, NULL);
     pump_on(PUMP_MAIN_PIN);
 }
 
@@ -45,13 +46,14 @@ void system_init()
     if (gpio_get_level(SENSOR_LOW_SIGNAL_PIN) != 1)
     {
         ESP_LOGI(TAG, "Tank was empty, filling the tank for the first time");
+
         REFILLING_FLAG = 1;
         pump_on(PUMP_MAIN_PIN);
     }
     else
     {
-        ESP_LOGW(TAG, "Tank was already full when system initialized!");
+        ESP_LOGW(TAG, "Tank was already full during system setup!");
     }
 
-    ESP_LOGI(TAG, "System initialized!");
+    ESP_LOGI(TAG, "Setup completed!");
 }

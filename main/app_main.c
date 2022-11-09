@@ -29,10 +29,10 @@ void app_main()
 {
     const char *TAG = "main";
 
-    system_init();
-
     // Global variables initialization
     pump_controller_msg_queue = xQueueCreate(10, sizeof(pump_controller_msg_t));
+
+    system_init();
 
     // Create tasks
     xTaskCreate(task_pump_controller, "task_pump_controller", 2048, NULL, 10, NULL);
