@@ -12,8 +12,6 @@ void water_sensor_config(
         .pull_up_en = 0};
 
     gpio_config(&water_sensor_signal_pin_config);
-    // gpio_install_isr_service(0);
-    // gpio_isr_handler_add(signal_pin, isr_callback, isr_callback_args);
 
     gpio_config_t water_sensor_mode_pin_config = {
         .intr_type = GPIO_INTR_DISABLE,

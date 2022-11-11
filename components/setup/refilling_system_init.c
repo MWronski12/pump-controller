@@ -1,5 +1,7 @@
 #include "refilling_system_init.h"
 
+const char *TAG = "refilling_system_init";
+
 static void top_water_sensor_isr_handler()
 {
     static pump_controller_msg_t msg = {.type = START_TASKS, .duration_s = 0, .pump_id = 0};
@@ -19,12 +21,9 @@ static void bottom_water_sensor_isr_handler()
     pump_on(PUMP_MAIN_PIN);
 }
 
-/* -------------------------------------------------------------------------- */
-/*         Configures gpio according to values defined in app_config.h        */
-/* -------------------------------------------------------------------------- */
+/* ---------------------------------- main ---------------------------------- */
 void refilling_system_init()
 {
-    const char *TAG = "refilling_system_init";
     // Bottom sensor config
     water_sensor_config(SENSOR_LOW_SIGNAL_PIN, SENSOR_LOW_MODE_PIN);
     gpio_set_intr_type(SENSOR_LOW_SIGNAL_PIN, GPIO_INTR_NEGEDGE);
@@ -43,16 +42,16 @@ void refilling_system_init()
     pump_config(PUMP_MAIN_PIN);
 
     // Fill the water for the first time
-    if (gpio_get_level(SENSOR_LOW_SIGNAL_PIN) != 1)
+    if (gpio_get_level(SENSOR_LOW_SIGNAL_PIN) == 0)
     {
-        ESP_LOGI(TAG, "Tank was empty, filling the tank for the first time");
+        ESP_LOGI(TAG, "Tank was empty during system init, filling the tank...");
 
         REFILLING_FLAG = 1;
         pump_on(PUMP_MAIN_PIN);
     }
     else
     {
-        ESP_LOGW(TAG, "Tank was already full during system initialization!");
+        ESP_LOGW(TAG, "Tank was already full during system init!");
     }
 
     ESP_LOGI(TAG, "Initialization completed!");
