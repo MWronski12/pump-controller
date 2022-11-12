@@ -2,6 +2,18 @@
 
 static const char *TAG = "task_mqtt_client";
 
+/* ----------------------------- CA certificate ----------------------------- */
+extern const uint8_t ca_cert_pem_start[] asm("_binary_ca_crt_start");
+extern const uint8_t ca_cert_pem_end[] asm("_binary_ca_cert_end");
+
+/* --------------------------- Client certificate --------------------------- */
+extern const uint8_t client_cert_pem_start[] asm("_binary_client_crt_start");
+extern const uint8_t client_cert_pem_end[] asm("_binary_client_crt_end");
+
+/* ------------------------------- Client key ------------------------------- */
+extern const uint8_t client_key_pem_start[] asm("_binary_client_key_start");
+extern const uint8_t client_key_pem_end[] asm("_binary_client_key_end");
+
 static esp_err_t mqtt_event_handler_cb(esp_mqtt_event_handle_t event)
 {
     esp_mqtt_client_handle_t client = event->client;
@@ -11,8 +23,10 @@ static esp_err_t mqtt_event_handler_cb(esp_mqtt_event_handle_t event)
     {
     case MQTT_EVENT_CONNECTED:
         ESP_LOGI(TAG, "MQTT_EVENT_CONNECTED");
-        msg_id = esp_mqtt_client_subscribe(client, "/command/tank_id", 2);
+        msg_id = esp_mqtt_client_subscribe(client, "command/tank_id", 2);
         ESP_LOGI(TAG, "sent subscribe successful, msg_id=%d", msg_id);
+
+        esp_mqtt_client_publish(client, "command/tank_id", "bro", 3, 2, 0);
         break;
 
     case MQTT_EVENT_DISCONNECTED:
@@ -58,8 +72,13 @@ static void mqtt_app_start(void)
 {
     esp_mqtt_client_config_t mqtt_cfg = {
         .uri = MQTT_BROKER_ADDR,
+        .task_prio = 10,
+        .client_cert_pem = (const char *)client_cert_pem_start,
+        .client_key_pem = (const char *)client_key_pem_start,
+        .cert_pem = (const char *)ca_cert_pem_start,
     };
 
+    ESP_LOGI(TAG, "[APP] Free memory: %d bytes", esp_get_free_heap_size());
     esp_mqtt_client_handle_t client = esp_mqtt_client_init(&mqtt_cfg);
     esp_mqtt_client_register_event(client, ESP_EVENT_ANY_ID, mqtt_event_handler, client);
     esp_mqtt_client_start(client);
