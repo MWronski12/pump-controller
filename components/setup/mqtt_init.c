@@ -54,7 +54,9 @@ static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
         pump_controller_msg_t *msg = mqtt_payload_to_pump_controller_msg_t(event->data, event->data_len);
         if (msg != NULL)
         {
+            taskENTER_CRITICAL();
             xQueueSend(pump_controller_msg_queue, msg, pdMS_TO_TICKS(100));
+            taskEXIT_CRITICAL();
         }
         else
         {

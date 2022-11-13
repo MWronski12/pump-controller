@@ -23,28 +23,26 @@ static pump_t *get_pump_by_id(uint8_t pump_id)
 
 static void timer_callback(TimerHandle_t timer)
 {
-    const char *timer_name = pcTimerGetName(timer);
-    const uint32_t timer_id = *(uint32_t *)pvTimerGetTimerID(timer);
-    const uint8_t pump_id = (uint8_t)timer_id;
-    ESP_LOGI(TAG, "%s expired pumid=%d", timer_name, pump_id);
+    const uint8_t pump_id = *(uint8_t *)pvTimerGetTimerID(timer);
+    ESP_LOGI(TAG, "Timer %d expired", pump_id);
+    pump_t *pump = get_pump_by_id(pump_id);
+    pump->has_active_task = 0;
     pump_off(pump_id);
 }
 
 static void pump_timers_config()
 {
     pump_t *pump;
-    char timer_name[10];
 
     for (int i = 0; i < sizeof(pumps_config) / sizeof(pump_t); i++)
     {
         pump = &pumps_config[i];
-        sprintf(timer_name, "Timer %d", pump->id);
 
         pump->timer = xTimerCreate(
-            timer_name,
+            "pump_timer",
             pdMS_TO_TICKS(5000),
             pdFALSE,
-            (void *)(uint32_t)pump->id,
+            (void *)&pump->id,
             timer_callback);
 
         if (pump->timer == NULL)
@@ -84,12 +82,14 @@ static void on_new_task_msg(pump_controller_msg_t *msg)
     if (REFILLING_FLAG == 1)
     {
         xTimerStop(pump->timer, pdMS_TO_TICKS(100));
-        ESP_LOGW(TAG, "%s stopped, new task request during refilling the tank", pcTimerGetName(pump->timer));
+        pump_off(pump->gpio);
+        ESP_LOGW(TAG, "Timer %d stopped, new task request during refilling the tank", pump->id);
     }
     else if (REFILLING_FLAG == 0)
     {
+        xTimerStart(pump->timer, pdMS_TO_TICKS(100));
         pump_on(pump->id);
-        ESP_LOGI(TAG, "%s started with period=%ds", pcTimerGetName(pump->timer), (uint32_t)(xTimerGetPeriod(pump->timer) / configTICK_RATE_HZ));
+        ESP_LOGI(TAG, "Timer %d started with period=%ds", pump->id, xTimerGetPeriod(pump->timer) / configTICK_RATE_HZ);
     }
 }
 
@@ -108,11 +108,11 @@ static void on_pause_tasks_msg()
                 if (xTimerStop(pump->timer, pdMS_TO_TICKS(100)) == pdPASS)
                 {
                     pump_off(pump->gpio);
-                    ESP_LOGI(TAG, "%s paused successfully!", pcTimerGetTimerName(pump->timer));
+                    ESP_LOGI(TAG, "Timer %d paused successfully!", pump->id);
                 }
                 else
                 {
-                    ESP_LOGE(TAG, "Pause command was not sent to %s!", pcTimerGetName(pump->timer));
+                    ESP_LOGE(TAG, "Pause command was not sent to Timer %d!", pump->id);
                 }
             }
         }
@@ -138,11 +138,11 @@ static void on_start_tasks_msg()
                 if (xTimerStart(pump->timer, pdMS_TO_TICKS(100)) == pdPASS)
                 {
                     pump_on(pump->gpio);
-                    ESP_LOGI(TAG, "%s started successfully!", pcTimerGetName(pump->timer));
+                    ESP_LOGI(TAG, "Timer %d started successfully!", pump->id);
                 }
                 else
                 {
-                    ESP_LOGE(TAG, "Start command was not sent to %s!", pcTimerGetName(pump->timer));
+                    ESP_LOGE(TAG, "Start command was not sent to Timer %d!", pump->id);
                 }
             }
         }
