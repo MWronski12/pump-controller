@@ -26,6 +26,7 @@
 
 #include "esp_log.h"
 #include "mqtt_client.h"
+#include "esp_heap_caps.h"
 
 // Components
 #include "mqtt_payload_parser.h"

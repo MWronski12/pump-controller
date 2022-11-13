@@ -1,9 +1,14 @@
 #include "mqtt_payload_parser.h"
 
+static const char *TAG = "mqtt_payload_parser";
+
 pump_controller_msg_t *mqtt_payload_to_pump_controller_msg_t(char *payload, int length)
 {
-    pump_controller_msg_t *msg = (pump_controller_msg_t *)heap_caps_malloc(sizeof(pump_controller_msg_t), MALLOC_CAP_8BIT);
-
+    pump_controller_msg_t *msg = (pump_controller_msg_t *)heap_caps_malloc(sizeof(pump_controller_msg_t), MALLOC_CAP_32BIT);
+    if (msg == NULL)
+    {
+        ESP_LOGE(TAG, "Failed to allocate memory for message on heap!");
+    }
     msg->type = NEW_TASK;
 
     /* ---------------------------- trim whitespaces ---------------------------- */
@@ -13,7 +18,8 @@ pump_controller_msg_t *mqtt_payload_to_pump_controller_msg_t(char *payload, int 
     }
 
     char payload_trimmed[MQTT_MAX_PAYLOAD_LENGTH];
-    strcpy(payload_trimmed, payload);
+    memcpy(payload_trimmed, payload, length);
+    payload_trimmed[length] = '\0';
     for (int i = 0; i < length; i++)
     {
         if (payload_trimmed[i] == ' ' || payload_trimmed[i] == '\n' || payload_trimmed[i] == '\t')
@@ -42,6 +48,7 @@ pump_controller_msg_t *mqtt_payload_to_pump_controller_msg_t(char *payload, int 
     /* ------------------- extract pump_id and duration_s keys ------------------ */
     if (ampersand_count != 1 || equal_count != 2)
     {
+        ESP_LOGE(TAG, "Special chars count error!");
         return NULL;
     }
 
@@ -50,11 +57,13 @@ pump_controller_msg_t *mqtt_payload_to_pump_controller_msg_t(char *payload, int 
 
     if (pump_id_str == NULL || duration_s_str == NULL)
     {
+        ESP_LOGE(TAG, "Keys error!");
         return NULL;
     }
 
     if (*(pump_id_str + strlen("pump_id")) != '=' || *(duration_s_str + strlen("duration_s")) != '=')
     {
+        ESP_LOGE(TAG, "Special chars placement error!");
         return NULL;
     }
 
@@ -67,6 +76,7 @@ pump_controller_msg_t *mqtt_payload_to_pump_controller_msg_t(char *payload, int 
     {
         if (i > 10)
         {
+            ESP_LOGE(TAG, "Deciaml represantation of pump_id value is too big!");
             return NULL;
         }
         pump_id[i] = *(c + i);
@@ -83,6 +93,8 @@ pump_controller_msg_t *mqtt_payload_to_pump_controller_msg_t(char *payload, int 
     {
         if (i > 10)
         {
+
+            ESP_LOGE(TAG, "Deciaml represantation of duration_s value is too big!");
             return NULL;
         }
         duration_s[i] = *(c + i);
@@ -94,6 +106,8 @@ pump_controller_msg_t *mqtt_payload_to_pump_controller_msg_t(char *payload, int 
     int pump_id_int = atoi(pump_id);
     if (pump_id_int < 0 || pump_id_int > 255)
     {
+
+        ESP_LOGE(TAG, "pump_id overflow!");
         return NULL;
     }
 
@@ -101,6 +115,8 @@ pump_controller_msg_t *mqtt_payload_to_pump_controller_msg_t(char *payload, int 
     int duration_s_int = atoi(duration_s);
     if (duration_s_int <= 0 || duration_s_int > 65535)
     {
+
+        ESP_LOGE(TAG, "duration_s overflow!");
         return NULL;
     }
 
