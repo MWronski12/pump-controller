@@ -25,7 +25,7 @@ struct pump_controller_msg_t
 {
     pump_controller_msg_type type;
     uint8_t pump_id;
-    uint8_t duration_s;
+    uint16_t duration_s;
 } typedef pump_controller_msg_t;
 
 struct pump_t

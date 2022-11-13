@@ -1,9 +1,7 @@
 #pragma once
 
 // SYSTEM
-#define USER_ID "szybkibill420"
-#define TANK_ID 69
-#define NUM_PUMPS 3
+#define TANK_ID "69"
 
 // GPIO
 #define PUMP_0_PIN GPIO_NUM_0
@@ -19,3 +17,8 @@
 
 // MQTT
 #define MQTT_BROKER_ADDR "mqtts://192.168.1.69:1883"
+#define MQTT_CLIENT_TASK_PRIORITY 10
+#define MQTT_MAX_PAYLOAD_LENGTH 50
+
+#define SUBSCRIBE_TOPIC "command/" TANK_ID
+#define PUBLISH_TOPIC "data/" TANK_ID

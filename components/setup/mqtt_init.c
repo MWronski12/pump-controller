@@ -1,20 +1,21 @@
-#include "task_mqtt_client.h"
+#include "mqtt_init.h"
 
-static const char *TAG = "task_mqtt_client";
+static const char *TAG = "mqtt_init";
 
-/* ----------------------------- CA certificate ----------------------------- */
-extern const uint8_t ca_cert_pem_start[] asm("_binary_ca_crt_start");
-extern const uint8_t ca_cert_pem_end[] asm("_binary_ca_cert_end");
+static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event);
 
-/* --------------------------- Client certificate --------------------------- */
-extern const uint8_t client_cert_pem_start[] asm("_binary_client_crt_start");
-extern const uint8_t client_cert_pem_end[] asm("_binary_client_crt_end");
+esp_mqtt_client_config_t mqtt_cfg = {
+    .uri = MQTT_BROKER_ADDR,
+    .event_handle = mqtt_event_handler,
+    .task_prio = MQTT_CLIENT_TASK_PRIORITY,
+    .client_cert_pem = (const char *)client_cert_pem_start,
+    .client_key_pem = (const char *)client_key_pem_start,
+    .cert_pem = (const char *)ca_cert_pem_start,
+    // .lwt_topic = "TODO!",
+    // .lwt_msg = "TODO!",
+};
 
-/* ------------------------------- Client key ------------------------------- */
-extern const uint8_t client_key_pem_start[] asm("_binary_client_key_start");
-extern const uint8_t client_key_pem_end[] asm("_binary_client_key_end");
-
-static esp_err_t mqtt_event_handler_cb(esp_mqtt_event_handle_t event)
+static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
 {
     esp_mqtt_client_handle_t client = event->client;
     int msg_id;
@@ -23,10 +24,8 @@ static esp_err_t mqtt_event_handler_cb(esp_mqtt_event_handle_t event)
     {
     case MQTT_EVENT_CONNECTED:
         ESP_LOGI(TAG, "MQTT_EVENT_CONNECTED");
-        msg_id = esp_mqtt_client_subscribe(client, "command/tank_id", 2);
+        msg_id = esp_mqtt_client_subscribe(client, SUBSCRIBE_TOPIC, 2);
         ESP_LOGI(TAG, "sent subscribe successful, msg_id=%d", msg_id);
-
-        esp_mqtt_client_publish(client, "command/tank_id", "bro", 3, 2, 0);
         break;
 
     case MQTT_EVENT_DISCONNECTED:
@@ -47,8 +46,22 @@ static esp_err_t mqtt_event_handler_cb(esp_mqtt_event_handle_t event)
 
     case MQTT_EVENT_DATA:
         ESP_LOGI(TAG, "MQTT_EVENT_DATA");
+
         printf("TOPIC=%.*s\r\n", event->topic_len, event->topic);
         printf("DATA=%.*s\r\n", event->data_len, event->data);
+        printf("payload=%s; payload_len=%d", event->data, event->data_len);
+
+        pump_controller_msg_t *msg = mqtt_payload_to_pump_controller_msg_t(event->data, event->data_len);
+        if (msg != NULL)
+        {
+            xQueueSend(pump_controller_msg_queue, msg, pdMS_TO_TICKS(100));
+        }
+        else
+        {
+            ESP_LOGE(TAG, "Error parsing mqtt message!");
+        }
+        free(msg);
+
         break;
 
     case MQTT_EVENT_ERROR:
@@ -62,30 +75,10 @@ static esp_err_t mqtt_event_handler_cb(esp_mqtt_event_handle_t event)
     return ESP_OK;
 }
 
-static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_t event_id, void *event_data)
-{
-    ESP_LOGD(TAG, "Event dispatched from event loop base=%s, event_id=%d", base, event_id);
-    mqtt_event_handler_cb(event_data);
-}
-
-static void mqtt_app_start(void)
-{
-    esp_mqtt_client_config_t mqtt_cfg = {
-        .uri = MQTT_BROKER_ADDR,
-        .task_prio = 10,
-        .client_cert_pem = (const char *)client_cert_pem_start,
-        .client_key_pem = (const char *)client_key_pem_start,
-        .cert_pem = (const char *)ca_cert_pem_start,
-    };
-
-    ESP_LOGI(TAG, "[APP] Free memory: %d bytes", esp_get_free_heap_size());
-    esp_mqtt_client_handle_t client = esp_mqtt_client_init(&mqtt_cfg);
-    esp_mqtt_client_register_event(client, ESP_EVENT_ANY_ID, mqtt_event_handler, client);
-    esp_mqtt_client_start(client);
-}
-
-/* ---------------------------------- main ---------------------------------- */
-void task_mqtt_client(void)
+/* -------------------------------------------------------------------------- */
+/*                 Connect to WiFi and start MQTT client task                 */
+/* -------------------------------------------------------------------------- */
+void mqtt_init(void)
 {
     ESP_LOGI(TAG, "[APP] Startup..");
     ESP_LOGI(TAG, "[APP] Free memory: %d bytes", esp_get_free_heap_size());
@@ -109,5 +102,7 @@ void task_mqtt_client(void)
      */
     ESP_ERROR_CHECK(example_connect());
 
-    mqtt_app_start();
+    ESP_LOGI(TAG, "[APP] Free memory: %d bytes", esp_get_free_heap_size());
+
+    esp_mqtt_client_start(client);
 }

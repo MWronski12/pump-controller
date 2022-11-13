@@ -21,7 +21,9 @@ static void bottom_water_sensor_isr_handler()
     pump_on(PUMP_MAIN_PIN);
 }
 
-/* ---------------------------------- main ---------------------------------- */
+/* -------------------------------------------------------------------------- */
+/*      Configure water sensors and pumps gpio and fill the tank if empty     */
+/* -------------------------------------------------------------------------- */
 void refilling_system_init()
 {
     // Bottom sensor config
