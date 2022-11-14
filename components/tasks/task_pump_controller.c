@@ -3,7 +3,7 @@
 static const char *TAG = "task_pump_controller";
 
 static pump_t pumps_config[] = {
-    {.id = 0, .gpio = PUMP_0_PIN, .has_active_task = 0, .timer = NULL},
+    {.id = 0, .gpio = PUMP_0_PIN, .has_active_task = 0, .active_task_ticks_left = 0, .timer = NULL},
     // {.id = 1, .gpio = PUMP_1_PIN, .has_active_task = 0, .timer = NULL},
     // {.id = 2, .gpio = PUMP_2_PIN, .has_active_task = 0, .timer = NULL},
 };
@@ -77,19 +77,20 @@ static void on_new_task_msg(pump_controller_msg_t *msg)
 
     pump->has_active_task = 1;
     duration_ticks = pdMS_TO_TICKS(msg->duration_s * 1000);
-    xTimerChangePeriod(pump->timer, duration_ticks, pdMS_TO_TICKS(100)); // This starts the timer
+    pump->active_task_ticks_left = duration_ticks;
+    xTimerChangePeriod(pump->timer, duration_ticks, pdMS_TO_TICKS(100));
 
-    if (REFILLING_FLAG == 1)
-    {
-        xTimerStop(pump->timer, pdMS_TO_TICKS(100));
-        pump_off(pump->gpio);
-        ESP_LOGW(TAG, "Timer %d stopped, new task request during refilling the tank", pump->id);
-    }
-    else if (REFILLING_FLAG == 0)
+    if (REFILLING_FLAG == 0)
     {
         xTimerStart(pump->timer, pdMS_TO_TICKS(100));
         pump_on(pump->id);
-        ESP_LOGI(TAG, "Timer %d started with period=%ds", pump->id, xTimerGetPeriod(pump->timer) / configTICK_RATE_HZ);
+        ESP_LOGI(TAG, "Timer %d started!", pump->id);
+    }
+    else if (REFILLING_FLAG == 1)
+    {
+        pump_off(pump->gpio);
+        xTimerStop(pump->timer, pdMS_TO_TICKS(100));
+        ESP_LOGW(TAG, "Timer %d stopped! New task request during refilling the tank", pump->id);
     }
 }
 
@@ -105,10 +106,22 @@ static void on_pause_tasks_msg()
 
             if (pump->has_active_task && xTimerIsTimerActive(pump->timer))
             {
+                TickType_t expiry_time = xTimerGetExpiryTime(pump->timer);
+                TickType_t now = xTaskGetTickCount();
+                uint8_t overflow_happened = expiry_time < now;
+                if (overflow_happened)
+                {
+                    pump->active_task_ticks_left = 0xffffffff - now + expiry_time;
+                }
+                else
+                {
+                    pump->active_task_ticks_left = expiry_time - now;
+                }
+
+                pump_off(pump->gpio);
                 if (xTimerStop(pump->timer, pdMS_TO_TICKS(100)) == pdPASS)
                 {
-                    pump_off(pump->gpio);
-                    ESP_LOGI(TAG, "Timer %d paused successfully!", pump->id);
+                    ESP_LOGI(TAG, "Timer %d paused successfully! Ticks left to finish the task: %d", pump->id, pump->active_task_ticks_left);
                 }
                 else
                 {
@@ -135,10 +148,11 @@ static void on_start_tasks_msg()
 
             if (pump->has_active_task && !xTimerIsTimerActive(pump->timer))
             {
-                if (xTimerStart(pump->timer, pdMS_TO_TICKS(100)) == pdPASS)
+
+                if (xTimerChangePeriod(pump->timer, pump->active_task_ticks_left, pdMS_TO_TICKS(100)) == pdPASS)
                 {
                     pump_on(pump->gpio);
-                    ESP_LOGI(TAG, "Timer %d started successfully!", pump->id);
+                    ESP_LOGI(TAG, "Timer %d started successfully! Ticks left to finished the task: %d", pump->id, pump->active_task_ticks_left);
                 }
                 else
                 {
@@ -173,7 +187,7 @@ void task_pump_controller(void *arg)
 
             case NEW_TASK:
 
-                ESP_LOGI(TAG, "NEW_TASK msg received! duration_d=%d, pump_id=%d", msg.duration_s, msg.pump_id);
+                ESP_LOGI(TAG, "NEW_TASK msg received! duration_s=%d, pump_id=%d", msg.duration_s, msg.pump_id);
                 on_new_task_msg(&msg);
                 break;
 

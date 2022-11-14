@@ -34,6 +34,7 @@ struct pump_t
     gpio_num_t gpio;
     uint8_t has_active_task;
     TimerHandle_t timer;
+    TickType_t active_task_ticks_left;
 } typedef pump_t;
 
 void task_pump_controller(void *arg);

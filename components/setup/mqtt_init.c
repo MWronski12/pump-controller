@@ -46,10 +46,7 @@ static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
 
     case MQTT_EVENT_DATA:
         ESP_LOGI(TAG, "MQTT_EVENT_DATA");
-
-        printf("TOPIC=%.*s\r\n", event->topic_len, event->topic);
-        printf("DATA=%.*s\r\n", event->data_len, event->data);
-        printf("payload=%s; payload_len=%d", event->data, event->data_len);
+        ESP_LOGD(TAG, "{ TOPIC=\"%.*s\", DATA=\"%.*s\" }", event->topic_len, event->topic, event->data_len, event->data);
 
         pump_controller_msg_t *msg = mqtt_payload_to_pump_controller_msg_t(event->data, event->data_len);
         if (msg != NULL)
