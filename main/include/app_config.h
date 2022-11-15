@@ -24,4 +24,4 @@
 #define MQTT_MAX_PAYLOAD_LENGTH 50
 
 #define SUBSCRIBE_TOPIC "command/" TANK_ID
-#define PUBLISH_TOPIC "data/" TANK_ID
+#define PUBLISH_TOPIC "logs/" TANK_ID

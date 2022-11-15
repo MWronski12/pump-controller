@@ -1,18 +1,10 @@
 // Freertos
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include "freertos/timers.h"
 #include "freertos/queue.h"
 
 // Espressif
 #include "esp_log.h"
-
-// Drivers
-#include "water_sensor_driver.h"
-#include "pump_driver.h"
-
-// MQTT Payload Parser
-#include "mqtt_payload_parser.h"
 
 // System Init
 #include "refilling_system_init.h"
