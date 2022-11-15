@@ -10,15 +10,17 @@
 #include "pump_driver.h"
 #include "refilling_system_init.h"
 
+#include "task_mqtt_logger.h"
+
 #include "app_config.h"
 
 extern QueueHandle_t pump_controller_msg_queue;
 
 enum pump_controller_msg_type
 {
-    NEW_TASK,
-    PAUSE_TASKS,
-    START_TASKS,
+    NEW_TASK_MSG,
+    PAUSE_TASKS_MSG,
+    START_TASKS_MSG,
 } typedef pump_controller_msg_type;
 
 struct pump_controller_msg_t

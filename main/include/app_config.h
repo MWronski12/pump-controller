@@ -2,6 +2,10 @@
 
 // SYSTEM
 #define TANK_ID "69"
+#define TASK_MQTT_CLIENT_PRIORITY 10
+#define TASK_MQTT_LOGGER_PRIORITY 10
+#define TASK_PUMP_CONTROLLER_PRIORITY 10
+#define _TIMER_TASK_PRIORITY 12 // This has to be set in FreeRTOSConfig.h file
 
 // GPIO
 #define PUMP_0_PIN GPIO_NUM_0
@@ -17,7 +21,6 @@
 
 // MQTT
 #define MQTT_BROKER_ADDR "mqtts://192.168.1.69:1883"
-#define MQTT_CLIENT_TASK_PRIORITY 10
 #define MQTT_MAX_PAYLOAD_LENGTH 50
 
 #define SUBSCRIBE_TOPIC "command/" TANK_ID

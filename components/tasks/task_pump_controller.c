@@ -24,6 +24,7 @@ static pump_t *get_pump_by_id(uint8_t pump_id)
 static void timer_callback(TimerHandle_t timer)
 {
     const uint8_t pump_id = *(uint8_t *)pvTimerGetTimerID(timer);
+    xTaskNotify(task_mqtt_logger_handle, TASK_FINISH, eSetValueWithoutOverwrite);
     ESP_LOGI(TAG, "Timer %d expired", pump_id);
     pump_t *pump = get_pump_by_id(pump_id);
     pump->has_active_task = 0;
@@ -185,19 +186,20 @@ void task_pump_controller(void *arg)
             switch (msg.type)
             {
 
-            case NEW_TASK:
+            case NEW_TASK_MSG:
 
+                xTaskNotify(task_mqtt_logger_handle, TASK_START, eSetValueWithoutOverwrite);
                 ESP_LOGI(TAG, "NEW_TASK msg received! duration_s=%d, pump_id=%d", msg.duration_s, msg.pump_id);
                 on_new_task_msg(&msg);
                 break;
 
-            case PAUSE_TASKS:
+            case PAUSE_TASKS_MSG:
 
                 ESP_LOGI(TAG, "PAUSE_TASKS msg received!");
                 on_pause_tasks_msg();
                 break;
 
-            case START_TASKS:
+            case START_TASKS_MSG:
 
                 ESP_LOGI(TAG, "START_TASKS msg reveiced!");
                 on_start_tasks_msg();
