@@ -1,5 +1,6 @@
 #pragma once
 
+// Standard library
 #include <stdio.h>
 #include <stdint.h>
 #include <stddef.h>
@@ -20,6 +21,7 @@
 #include "freertos/semphr.h"
 #include "freertos/queue.h"
 
+// Espressif
 #include "lwip/sockets.h"
 #include "lwip/dns.h"
 #include "lwip/netdb.h"

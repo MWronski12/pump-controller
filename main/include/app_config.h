@@ -20,7 +20,7 @@
 #define SENSOR_HIGH_MODE_PIN GPIO_NUM_12
 
 // MQTT
-#define MQTT_BROKER_ADDR "mqtts://192.168.1.69:1883"
+#define MQTT_BROKER_ADDR "mqtt://10.5.0.2:1883"
 #define MQTT_MAX_PAYLOAD_LENGTH 50
 
 #define SUBSCRIBE_TOPIC "command/" TANK_ID

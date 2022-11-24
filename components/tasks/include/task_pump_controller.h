@@ -1,17 +1,22 @@
 #pragma once
 
+// FreeRTOS
 #include "FreeRTOS.h"
 #include "freertos/queue.h"
 #include "freertos/timers.h"
 
+// Espressif
 #include "driver/gpio.h"
 #include "esp_log.h"
 
+// Drivers
 #include "pump_driver.h"
 #include "refilling_system_init.h"
 
+// Tasks
 #include "task_mqtt_logger.h"
 
+// App configuration file
 #include "app_config.h"
 
 extern QueueHandle_t pump_controller_msg_queue;

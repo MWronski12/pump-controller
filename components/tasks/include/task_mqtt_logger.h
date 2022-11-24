@@ -1,17 +1,20 @@
 #pragma once
 
+// Standard library
 #include "string.h"
 
+// FreeRTOS
 #include "FreeRTOS.h"
 #include "freertos/task.h"
 
+// Espressif
+#include "mqtt_client.h"
 #include "esp_log.h"
 
-#include "mqtt_init.h"
-
+// Espressif
 #include "app_config.h"
 
-extern TaskHandle_t task_mqtt_logger_handle;
+extern esp_mqtt_client_handle_t client;
 
 enum events
 {

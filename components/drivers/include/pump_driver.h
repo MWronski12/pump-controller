@@ -1,10 +1,13 @@
 #pragma once
 
+// FreeRTOS
 #include "freertos/FreeRTOS.h"
 #include "freertos/timers.h"
 
+// Espressif
 #include "driver/gpio.h"
 
+// App configuration file
 #include "app_config.h"
 
 #define START_WATER 1
