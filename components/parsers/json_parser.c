@@ -38,28 +38,24 @@ pump_controller_msg_t *json_parser(char *payload, int length)
     msg->type = NEW_TASK_MSG;
 
     /* ------------------------- initialize cJSON struct ------------------------ */
-    const cJSON *pump_id = NULL;
+    const cJSON *pump_gpio = NULL;
     const cJSON *duration_s = NULL;
 
     cJSON *message = cJSON_Parse(payload_buff);
-    const char *error_ptr = cJSON_GetErrorPtr();
 
     if (message == NULL)
     {
-        if (error_ptr != NULL)
-        {
-            ESP_LOGE(TAG, "Error parsing payload string: %s", error_ptr);
-        }
+        ESP_LOGW(TAG, "Could not parse payload: %.*s", length, payload);
         msg = NULL;
         goto end;
     }
 
     /* ----------------------------- parse "pumpId" ----------------------------- */
-    pump_id = cJSON_GetObjectItemCaseSensitive(message, "pumpId");
-    if (cJSON_IsNumber(pump_id) && pump_id->valueint >= 0 && pump_id->valueint <= 0xff)
+    pump_gpio = cJSON_GetObjectItemCaseSensitive(message, "pumpGpio");
+    if (cJSON_IsNumber(pump_gpio) && pump_gpio->valueint >= 0 && pump_gpio->valueint <= 0xff)
     {
-        ESP_LOGI(TAG, "Checking pump_id=%d", pump_id->valueint);
-        msg->pump_id = pump_id->valueint;
+        ESP_LOGI(TAG, "Checking pump_gpio=%d", pump_gpio->valueint);
+        msg->pump_gpio = pump_gpio->valueint;
     }
     else
     {

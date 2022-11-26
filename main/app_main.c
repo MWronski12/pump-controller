@@ -30,14 +30,18 @@ void app_main()
     // Global variables
     pump_controller_msg_queue = xQueueCreate(10, sizeof(pump_controller_msg_t));
     client = esp_mqtt_client_init(&mqtt_cfg);
-
-    // Setup
-    refilling_system_init();
-    mqtt_init();
+    while (client == NULL)
+    {
+        vTaskDelay(pdMS_TO_TICKS(100));
+    }
 
     // Tasks
     xTaskCreate(task_mqtt_logger, "task_mqtt_logger", 2048, NULL, TASK_MQTT_LOGGER_PRIORITY, &task_mqtt_logger_handle);
     xTaskCreate(task_pump_controller, "task_pump_controller", 2048, NULL, TASK_PUMP_CONTROLLER_PRIORITY, NULL);
+
+    // System Init
+    refilling_system_init();
+    mqtt_init();
 
     ESP_LOGI(TAG, "System initialized!");
 }

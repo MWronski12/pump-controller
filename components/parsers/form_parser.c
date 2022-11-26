@@ -62,44 +62,44 @@ pump_controller_msg_t *form_parser(char *payload, int length)
         }
     }
 
-    /* ------------------- extract pump_id and duration_s keys ------------------ */
+    /* ------------------ extract pump_gpio and duration_s keys ----------------- */
     if (ampersand_count != 1 || equal_count != 2)
     {
         ESP_LOGE(TAG, "Special chars count error!");
         return NULL;
     }
 
-    char *pump_id_str = strstr(payload_trimmed, "pumpId");
+    char *pump_gpio_str = strstr(payload_trimmed, "pumpGpio");
     char *duration_s_str = strstr(payload_trimmed, "durationS");
 
-    if (pump_id_str == NULL || duration_s_str == NULL)
+    if (pump_gpio_str == NULL || duration_s_str == NULL)
     {
         ESP_LOGE(TAG, "Keys error!");
         return NULL;
     }
 
-    if (*(pump_id_str + strlen("pumpId")) != '=' || *(duration_s_str + strlen("durationS")) != '=')
+    if (*(pump_gpio_str + strlen("pumpGpio")) != '=' || *(duration_s_str + strlen("durationS")) != '=')
     {
         ESP_LOGE(TAG, "Special chars placement error!");
         return NULL;
     }
 
-    /* --------------------------- parse pump_id value -------------------------- */
-    char pump_id[12];
-    char *c = pump_id_str + strlen("pumpId") + 1;
+    /* -------------------------- parse pump_gpio value ------------------------- */
+    char pump_gpio[12];
+    char *c = pump_gpio_str + strlen("pumpGpio") + 1;
     int i = 0;
 
     while (*(c + i) != '&' && *(c + i) != '\0')
     {
         if (i > 10)
         {
-            ESP_LOGE(TAG, "Deciaml represantation of pump_id value is too big!");
+            ESP_LOGE(TAG, "Deciaml represantation of pump_gpio value is too big!");
             return NULL;
         }
-        pump_id[i] = *(c + i);
+        pump_gpio[i] = *(c + i);
         i++;
     }
-    pump_id[i] = '\0';
+    pump_gpio[i] = '\0';
 
     /* ------------------------- parse duration_s value ------------------------- */
     char duration_s[12];
@@ -119,12 +119,12 @@ pump_controller_msg_t *form_parser(char *payload, int length)
     }
     duration_s[i] = '\0';
 
-    /* -------------------- assert pump_id is a valid uint8_t ------------------- */
-    int pump_id_int = atoi(pump_id);
-    if (pump_id_int < 0 || pump_id_int > 0xff)
+    /* ------------------- assert pump_gpio is a valid uint8_t ------------------ */
+    int pump_gpio_int = atoi(pump_gpio);
+    if (pump_gpio_int < 0 || pump_gpio_int > 0xff)
     {
 
-        ESP_LOGE(TAG, "pump_id overflow!");
+        ESP_LOGE(TAG, "pump_gpio overflow!");
         return NULL;
     }
 
@@ -137,7 +137,7 @@ pump_controller_msg_t *form_parser(char *payload, int length)
         return NULL;
     }
 
-    msg->pump_id = (uint8_t)pump_id_int;
+    msg->pump_gpio = (uint8_t)pump_gpio_int;
     msg->duration_s = (uint16_t)duration_s_int;
 
     return msg;

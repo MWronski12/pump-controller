@@ -23,7 +23,7 @@ def refill_system_config:
 #                                PUMP CONTROLLER                               #
 # ---------------------------------------------------------------------------- #
 class msg:
-    pump_id
+    pump_gpio
     duration
 
 
@@ -37,9 +37,9 @@ def thread_pump_controller:
     if msg:
 
         new timer msg.duration
-        timer.id = msg.pump_id
+        timer.id = msg.pump_gpio
         start timer
-        pump_on(msg.pump_id)
+        pump_on(msg.pump_gpio)
 
 # ---------------------------------------------------------------------------- #
 #                                  MQTT Module                                 #
@@ -56,7 +56,7 @@ def thread_mqtt_listener:
 
                 send(
                     target=thread_pump_controller,
-                    data={pump_id, duration}
+                    data={pump_gpio, duration}
                 )
 
 # ---------------------------------------------------------------------------- #

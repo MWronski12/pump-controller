@@ -21,27 +21,27 @@ static pump_t pumps_config[] = {
     {.id = 2, .gpio = PUMP_2_PIN, .has_active_task = 0, .active_task_ticks_left = 0, .timer = NULL},
 };
 
-static pump_t *get_pump_by_id(uint8_t pump_id)
+static pump_t *get_pump_by_gpio(uint8_t pump_gpio)
 {
     for (int i = 0; i < sizeof(pumps_config) / sizeof(pump_t); i++)
     {
-        if (pumps_config[i].id == pump_id)
+        if (pumps_config[i].gpio == pump_gpio)
         {
             return &pumps_config[i];
         }
     }
-    ESP_LOGW(TAG, "Could not get pump with id=%d", pump_id);
+    ESP_LOGW(TAG, "Could not get pump with id=%d", pump_gpio);
     return NULL;
 }
 
 static void timer_callback(TimerHandle_t timer)
 {
-    const uint8_t pump_id = *(uint8_t *)pvTimerGetTimerID(timer);
+    const uint8_t pump_gpio = *(uint8_t *)pvTimerGetTimerID(timer);
     xTaskNotify(task_mqtt_logger_handle, TASK_FINISH, eSetValueWithoutOverwrite);
-    ESP_LOGI(TAG, "Timer %d expired", pump_id);
-    pump_t *pump = get_pump_by_id(pump_id);
+    ESP_LOGI(TAG, "Timer for pump assigned to gpio=%d expired", pump_gpio);
+    pump_t *pump = get_pump_by_gpio(pump_gpio);
     pump->has_active_task = 0;
-    pump_off(pump_id);
+    pump_off(pump_gpio);
 }
 
 static void pump_timers_config()
@@ -56,16 +56,16 @@ static void pump_timers_config()
             "pump_timer",
             pdMS_TO_TICKS(5000),
             pdFALSE,
-            (void *)&pump->id,
+            (void *)&pump->gpio,
             timer_callback);
 
         if (pump->timer == NULL)
         {
-            ESP_LOGE(TAG, "Timer for pump with id=%d was not created!", pump->id);
+            ESP_LOGE(TAG, "Timer for pump assigned to gpio=%d was not created!", pump->gpio);
         }
         else
         {
-            ESP_LOGI(TAG, "Timer for pump with id=%d created succesfully!", pump->id);
+            ESP_LOGI(TAG, "Timer for pump assigned to gpio=%d created succesfully!", pump->gpio);
         }
     }
 }
@@ -75,17 +75,17 @@ static void on_new_task_msg(pump_controller_msg_t *msg)
     pump_t *pump;
     TickType_t duration_ticks;
 
-    pump = get_pump_by_id(msg->pump_id);
+    pump = get_pump_by_gpio(msg->pump_gpio);
 
     if (pump == NULL)
     {
-        ESP_LOGE(TAG, "Pump with id=%d does not exist! Aborting new task request...", msg->pump_id);
+        ESP_LOGE(TAG, "Pump assigned to gpio=%d does not exist! Aborting new task request...", msg->pump_gpio);
         return;
     }
 
     if (pump->has_active_task)
     {
-        ESP_LOGW(TAG, "Previous task of pump with id=%d was not finished yet! Aborting new task request...", pump->id);
+        ESP_LOGW(TAG, "Previous task of pump assigned to gpio=%d was not finished yet! Aborting new task request...", pump->gpio);
         return;
     }
 
@@ -202,7 +202,7 @@ void task_pump_controller(void *arg)
             case NEW_TASK_MSG:
 
                 xTaskNotify(task_mqtt_logger_handle, TASK_START, eSetValueWithoutOverwrite);
-                ESP_LOGI(TAG, "NEW_TASK msg received! duration_s=%d, pump_id=%d", msg.duration_s, msg.pump_id);
+                ESP_LOGI(TAG, "NEW_TASK msg received! duration_s=%d, pump_gpio=%d", msg.duration_s, msg.pump_gpio);
                 on_new_task_msg(&msg);
                 break;
 

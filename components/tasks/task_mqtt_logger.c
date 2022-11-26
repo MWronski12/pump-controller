@@ -54,11 +54,18 @@ void task_mqtt_logger(void *arg)
             break;
         }
 
-        msg_id = esp_mqtt_client_publish(client, PUBLISH_TOPIC, payload, strlen(payload), 2, 0);
-
-        if (msg_id == -1)
+        if (client != NULL)
         {
-            ESP_LOGE(TAG, "Failed to send log message! Payload: %s", payload);
+            msg_id = esp_mqtt_client_publish(client, PUBLISH_TOPIC, payload, strlen(payload), 2, 0);
+            if (msg_id == -1)
+            {
+                ESP_LOGE(TAG, "Failed to send log message! Payload: %s", payload);
+            }
+        }
+        else
+        {
+            ESP_LOGE(TAG, "MQTT Client not initialized!");
+            return;
         }
     }
 }
