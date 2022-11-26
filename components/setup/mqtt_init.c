@@ -1,3 +1,43 @@
+// Standard library
+#include <stdio.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <string.h>
+
+// Espressif
+#include "esp_wifi.h"
+#include "esp_system.h"
+#include "nvs_flash.h"
+#include "esp_event.h"
+#include "esp_netif.h"
+#include "esp_tls.h"
+#include "protocol_examples_common.h"
+
+// FreeRTOS
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "freertos/semphr.h"
+#include "freertos/queue.h"
+
+// Espressif
+#include "lwip/sockets.h"
+#include "lwip/dns.h"
+#include "lwip/netdb.h"
+
+#include "esp_log.h"
+#include "esp_heap_caps.h"
+
+// Payload parsers
+#include "form_parser.h"
+#include "json_parser.h"
+
+// Tasks
+#include "task_pump_controller.h"
+
+// App config file
+#include "app_config.h"
+
+// Header
 #include "mqtt_init.h"
 
 static const char *TAG = "mqtt_init";
@@ -14,6 +54,31 @@ esp_mqtt_client_config_t mqtt_cfg = {
     // .lwt_topic = "TODO!",
     // .lwt_msg = "TODO!",
 };
+
+static void on_msg(esp_mqtt_event_handle_t event)
+{
+    pump_controller_msg_t *msg;
+
+    msg = json_parser(event->data, event->data_len);
+    if (msg == NULL)
+    {
+        msg = form_parser(event->data, event->data_len);
+    }
+
+    if (msg != NULL)
+    {
+        taskENTER_CRITICAL();
+        xQueueSend(pump_controller_msg_queue, msg, pdMS_TO_TICKS(100));
+        taskEXIT_CRITICAL();
+    }
+    else
+    {
+        ESP_LOGE(TAG, "Error parsing mqtt message!");
+    }
+
+    heap_caps_free(msg);
+    return;
+}
 
 static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
 {
@@ -46,21 +111,7 @@ static esp_err_t mqtt_event_handler(esp_mqtt_event_handle_t event)
 
     case MQTT_EVENT_DATA:
         ESP_LOGI(TAG, "MQTT_EVENT_DATA");
-        ESP_LOGD(TAG, "{ TOPIC=\"%.*s\", DATA=\"%.*s\" }", event->topic_len, event->topic, event->data_len, event->data);
-
-        pump_controller_msg_t *msg = mqtt_payload_to_pump_controller_msg_t(event->data, event->data_len);
-        if (msg != NULL)
-        {
-            taskENTER_CRITICAL();
-            xQueueSend(pump_controller_msg_queue, msg, pdMS_TO_TICKS(100));
-            taskEXIT_CRITICAL();
-        }
-        else
-        {
-            ESP_LOGE(TAG, "Error parsing mqtt message!");
-        }
-        heap_caps_free(msg);
-
+        on_msg(event);
         break;
 
     case MQTT_EVENT_ERROR:

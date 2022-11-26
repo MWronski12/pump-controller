@@ -1,6 +1,22 @@
+// Espressif
+#include "driver/gpio.h"
+#include "esp_log.h"
+
+// Drivers
+#include "pump_driver.h"
+#include "water_sensor_driver.h"
+
+// Tasks
+#include "task_mqtt_logger.h"
+#include "task_pump_controller.h"
+
+// App configuration file
+#include "app_config.h"
+
+// Header
 #include "refilling_system_init.h"
 
-const char *TAG = "refilling_system_init";
+static const char *TAG = "refilling_system_init";
 
 static void top_water_sensor_isr_handler()
 {

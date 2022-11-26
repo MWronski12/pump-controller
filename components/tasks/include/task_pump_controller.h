@@ -7,19 +7,9 @@
 
 // Espressif
 #include "driver/gpio.h"
-#include "esp_log.h"
-
-// Drivers
-#include "pump_driver.h"
-#include "refilling_system_init.h"
-
-// Tasks
-#include "task_mqtt_logger.h"
-
-// App configuration file
-#include "app_config.h"
 
 extern QueueHandle_t pump_controller_msg_queue;
+extern volatile uint8_t REFILLING_FLAG;
 
 enum pump_controller_msg_type
 {

@@ -1,3 +1,16 @@
+// Espressif
+#include "esp_log.h"
+
+// Drivers
+#include "pump_driver.h"
+
+// Tasks
+#include "task_mqtt_logger.h"
+
+// App configuration file
+#include "app_config.h"
+
+// Header
 #include "task_pump_controller.h"
 
 static const char *TAG = "task_pump_controller";

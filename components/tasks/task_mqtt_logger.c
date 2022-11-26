@@ -1,4 +1,14 @@
+// Standard library
+#include "string.h"
+
+// Espressif
+#include "esp_log.h"
+
+// Tasks
 #include "task_mqtt_logger.h"
+
+// App config file
+#include "app_config.h"
 
 static const char *TAG = "task_mqtt_logger";
 
