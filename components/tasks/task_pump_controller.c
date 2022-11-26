@@ -97,7 +97,7 @@ static void on_new_task_msg(pump_controller_msg_t *msg)
     if (REFILLING_FLAG == 0)
     {
         xTimerStart(pump->timer, pdMS_TO_TICKS(100));
-        pump_on(pump->id);
+        pump_on(pump->gpio);
         ESP_LOGI(TAG, "Timer %d started!", pump->id);
     }
     else if (REFILLING_FLAG == 1)
