@@ -17,8 +17,8 @@ static const char *TAG = "task_pump_controller";
 
 static pump_t pumps_config[] = {
     {.id = 0, .gpio = PUMP_0_PIN, .has_active_task = 0, .active_task_ticks_left = 0, .timer = NULL},
-    // {.id = 1, .gpio = PUMP_1_PIN, .has_active_task = 0, .timer = NULL},
-    // {.id = 2, .gpio = PUMP_2_PIN, .has_active_task = 0, .timer = NULL},
+    {.id = 1, .gpio = PUMP_1_PIN, .has_active_task = 0, .active_task_ticks_left = 0, .timer = NULL},
+    {.id = 2, .gpio = PUMP_2_PIN, .has_active_task = 0, .active_task_ticks_left = 0, .timer = NULL},
 };
 
 static pump_t *get_pump_by_id(uint8_t pump_id)

@@ -9,8 +9,8 @@
 
 // GPIO
 #define PUMP_0_PIN GPIO_NUM_0
-#define PUMP_1_PIN -1 // unused
-#define PUMP_2_PIN -1 // unused
+#define PUMP_1_PIN GPIO_NUM_13
+#define PUMP_2_PIN GPIO_NUM_15
 #define PUMP_MAIN_PIN GPIO_NUM_2
 
 #define SENSOR_LOW_SIGNAL_PIN GPIO_NUM_5
