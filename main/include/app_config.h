@@ -20,8 +20,10 @@
 #define SENSOR_HIGH_MODE_PIN GPIO_NUM_12
 
 // MQTT
-#define MQTT_BROKER_ADDR "mqtt://192.168.1.15:1883"
+#define MQTT_BROKER_ADDR "mqtt://172.111.242.63:6666"
 #define MQTT_MAX_PAYLOAD_LENGTH 50
+#define MQTT_USERNAME "roslina"
+#define MQTT_PASSWORD "smartcrops"
 
 #define SUBSCRIBE_TOPIC "command/" TANK_ID
 #define PUBLISH_TOPIC "logs/" TANK_ID

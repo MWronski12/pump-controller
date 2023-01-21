@@ -48,9 +48,12 @@ esp_mqtt_client_config_t mqtt_cfg = {
     .uri = MQTT_BROKER_ADDR,
     .event_handle = mqtt_event_handler,
     .task_prio = TASK_MQTT_CLIENT_PRIORITY,
-    .client_cert_pem = (const char *)client_cert_pem_start,
-    .client_key_pem = (const char *)client_key_pem_start,
-    .cert_pem = (const char *)ca_cert_pem_start,
+    .username = MQTT_USERNAME,
+    .password = MQTT_PASSWORD,
+
+    // .client_cert_pem = (const char *)client_cert_pem_start,
+    // .client_key_pem = (const char *)client_key_pem_start,
+    // .cert_pem = (const char *)ca_cert_pem_start,
     // .lwt_topic = "TODO!",
     // .lwt_msg = "TODO!",
 };
