@@ -1,3 +1,3 @@
 # pump-controller
 
-Repository for the software, which will be running on ESP8266, installed in every water tank of the system.
+ESP8266 firmware for SmartCrops project, which provides functionality of remote pump activation for desired amount of time through secured MQTT connection and controls automatic refilling of the water tank made with FreeRTOS SDK.
